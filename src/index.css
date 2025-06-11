@@ -2,15 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-.loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3b82f6;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  animation: spin 1s linear infinite;
+/* Tambahan styling custom opsional */
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom right, #1f1c2c, #928dab); /* fallback background (tidak terlalu terang) */
+  color: #1a1a1a;
 }
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+
+input, button, select, textarea {
+  font-family: inherit;
+  outline: none;
+}
+
+/* Scrollbar custom untuk desktop */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+/* Transition global */
+.transition-all {
+  transition: all 0.3s ease;
 }
