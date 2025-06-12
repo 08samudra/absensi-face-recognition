@@ -5,92 +5,95 @@ import Toast from "../components/Toast";
 import * as tf from "@tensorflow/tfjs";
 
 const MODEL_URL = "/tfjs_model/model.json";
-const CLASS_NAMES = ["Sisy","Widia","Yoga"];
+const CLASS_NAMES = ["Sisy", "Widia", "Yoga"];
+
+// Fungsi bantu untuk memastikan gambar sudah termuat sebelum diproses
+function loadImageAsync(imageSrc) {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.src = imageSrc;
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+  });
+}
 
 function Absensi() {
-  const webcamRef = useRef(null); 
-  const [status, setStatus] = useState("Belum memulai absensi"); 
-  const [loading, setLoading] = useState(false); 
+  const webcamRef = useRef(null);
+  const [status, setStatus] = useState("Belum memulai absensi");
+  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [canAbsensi, setCanAbsensi] = useState(true);
-  const [showToast, setShowToast] = useState(false);
 
   const handleAbsensi = async () => {
-      setLoading(true);
-      setStatus("Mendeteksi wajah...");
-      setCanAbsensi(false);
-  
-      // Ambil gambar dari webcam
-      const imageSrc = webcamRef.current.getScreenshot();
-      if (!imageSrc) {
-        setStatus("Gagal mengambil gambar dari webcam.");
-        setLoading(false);
+    setLoading(true);
+    setStatus("Mendeteksi wajah...");
+    setCanAbsensi(false);
+
+    const imageSrc = webcamRef.current.getScreenshot();
+    if (!imageSrc) {
+      setStatus("Gagal mengambil gambar dari webcam.");
+      setToast({
+        message: "Gagal mengambil gambar dari webcam.",
+        type: "error",
+      });
+      setLoading(false);
+      setCanAbsensi(true);
+      return;
+    }
+
+    let model;
+    try {
+      model = await tf.loadLayersModel(MODEL_URL);
+    } catch (e) {
+      setStatus("Gagal memuat model.");
+      setToast({ message: "Gagal memuat model.", type: "error" });
+      setLoading(false);
+      setCanAbsensi(true);
+      return;
+    }
+
+    try {
+      const img = await loadImageAsync(imageSrc);
+      const tensor = tf.browser
+        .fromPixels(img)
+        .resizeNearestNeighbor([224, 224])
+        .toFloat()
+        .div(255.0)
+        .expandDims();
+
+      const prediction = model.predict(tensor);
+      const predictionData = await prediction.data();
+      const maxIdx = predictionData.indexOf(Math.max(...predictionData));
+      const confidence = predictionData[maxIdx];
+
+      if (confidence < 0.8) {
+        setStatus("Wajah tidak terdeteksi. Silakan ulangi.");
         setToast({
-          message: "Gagal mengambil gambar dari webcam.",
+          message: "Wajah tidak terdeteksi. Silakan ulangi.",
           type: "error",
         });
-        setCanAbsensi(true);
-        return;
-      }
-  
-      // Load model TensorFlow.js
-      let model;
-      try {
-        model = await tf.loadLayersModel(MODEL_URL);
-      } catch (e) {
-        setStatus("Gagal memuat model.");
-        setLoading(false);
-        setToast({
-          message: "Gagal memuat model.",
-          type: "error",
-        });
-        setCanAbsensi(true);
-        return;
-      }
-  
-      // Preprocessing gambar
-      const img = new window.Image();
-      img.src = imageSrc;
-      img.onload = async () => {
-        let tensor = tf.browser.fromPixels(img)
-          .resizeNearestNeighbor([224, 224])
-          .toFloat()
-          .expandDims();
-  
-        // Prediksi
-        const prediction = model.predict(tensor);
-        const predictionData = await prediction.data();
-        const maxIdx = predictionData.indexOf(Math.max(...predictionData));
-        const confidence = predictionData[maxIdx];
-  
-        // Threshold confidence 0.9
-        if (confidence < 0.8) {
-          setStatus("Wajah tidak terdeteksi. Silakan ulangi.");
-          setLoading(false);
-          setToast({
-            message: "Wajah tidak terdeteksi. Silakan ulangi.",
-            type: "error",
-          });
-          setCanAbsensi(true); // Tidak bisa absen
-          return;
-        }
-  
+      } else {
         const predictedName = CLASS_NAMES[maxIdx];
         const timestamp = new Date().toISOString();
         const success = await saveAttendance(predictedName, timestamp);
-  
+
         setStatus(success ? `Absensi berhasil: ${predictedName}` : "Gagal menyimpan absensi");
-        setLoading(false);
-        setCanAbsensi(true);
-  
         setToast({
           message: success
             ? `Absensi tercatat untuk ${predictedName}`
             : "Terjadi kesalahan saat menyimpan.",
           type: success ? "success" : "error",
         });
-      };
-    };
+      }
+    } catch (error) {
+      console.error("Error saat memproses gambar:", error);
+      setStatus("Gagal memproses gambar.");
+      setToast({ message: "Gagal memproses gambar.", type: "error" });
+    } finally {
+      setLoading(false);
+      setCanAbsensi(true);
+    }
+  };
 
   return (
     <div className="p-4 sm:p-6 md:p-8 min-h-screen bg-gray-100">
