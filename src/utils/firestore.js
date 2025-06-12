@@ -18,5 +18,5 @@ export async function saveAttendance(name, timestamp) {
 // Ambil data absensi
 export async function getAttendanceList() {
   const snapshot = await getDocs(collection(db, "absensi"));
-  return snapshot.docs.map((doc) => doc.data());
+  return snapshot.docs.map((doc) => doc.data()); // Tidak perlu ambil ID
 }

@@ -1,12 +1,33 @@
-import { Link } from 'react-router-dom';
+import { NavLink } from "react-router-dom";
 
 function Navbar() {
   return (
-    <nav className="bg-white shadow p-4 flex justify-between items-center">
-      <h1 className="text-xl font-bold text-blue-600">FaceAttend</h1>
-      <div className="space-x-4">
-        <Link to="/" className="text-gray-700 hover:text-blue-600">Dashboard</Link>
-        <Link to="/absensi" className="text-gray-700 hover:text-blue-600">Absensi</Link>
+    <nav className="bg-gradient-to-r from-red-900 to-black text-white py-3 px-6 shadow-md">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="text-[32px] font-bold italic">FaceAttend</div>
+        {/* Menu kiri */}
+        <div className="flex gap-4">
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `px-4 py-2 rounded-full transition ${
+                isActive ? "bg-white text-black font-semibold" : "hover:bg-red-800"
+              }`
+            }
+          >
+            Absensi
+          </NavLink>
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              `px-4 py-2 rounded-full transition ${
+                isActive ? "bg-white text-black font-semibold" : "hover:bg-red-800"
+              }`
+            }
+          >
+            Dashboard
+          </NavLink>
+        </div>
       </div>
     </nav>
   );
