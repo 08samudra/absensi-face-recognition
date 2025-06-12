@@ -5,7 +5,7 @@ import Toast from "../components/Toast";
 import * as tf from "@tensorflow/tfjs";
 
 const MODEL_URL = "/tfjs_model/model.json";
-const CLASS_NAMES = ["Sisy", "Yoga"];
+const CLASS_NAMES = ["Sisy","Widia","Yoga"];
 
 function Absensi() {
   const webcamRef = useRef(null); 
@@ -63,15 +63,15 @@ function Absensi() {
         const maxIdx = predictionData.indexOf(Math.max(...predictionData));
         const confidence = predictionData[maxIdx];
   
-        // Misal threshold confidence 0.7
-        if (confidence < 0.7) {
+        // Threshold confidence 0.9
+        if (confidence < 0.8) {
           setStatus("Wajah tidak terdeteksi. Silakan ulangi.");
           setLoading(false);
           setToast({
             message: "Wajah tidak terdeteksi. Silakan ulangi.",
             type: "error",
           });
-          setCanAbsensi(false); // Tidak bisa absen
+          setCanAbsensi(true); // Tidak bisa absen
           return;
         }
   
