@@ -5,7 +5,7 @@ import Toast from "../components/Toast";
 import * as tf from "@tensorflow/tfjs";
 
 const MODEL_URL = "/tfjs_model/model.json";
-const CLASS_NAMES = ["Sisy", "Widia", "Yoga"];
+const CLASS_NAMES = ["Sisy","Yoga"];
 
 // Fungsi bantu untuk memastikan gambar sudah termuat sebelum diproses
 function loadImageAsync(imageSrc) {
